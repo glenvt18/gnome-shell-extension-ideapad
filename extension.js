@@ -33,6 +33,8 @@ const aggregateMenu = Main.panel.statusArea.aggregateMenu;
 const powerIndicator = _getIndicators(aggregateMenu._power);
 const powerMenu = aggregateMenu._power.menu.firstMenuItem.menu;
 
+const enableIndicator = false
+
 // MANUAL OVERRIDE
 // to disable the auto-discovery more, just set the absolute device path here
 // E.g.: "/sys/bus/platform/drivers/ideapad_acpi/VPC2004:00/conservation_mode"
@@ -46,10 +48,13 @@ const BatteryConservationIndicator = GObject.registerClass(
         _init() {
             super._init();
             this._monitor = null;
+            this._indicator = null;
 
-            this._indicator = this._addIndicator();
-            this._indicator.icon_name = "emoji-nature-symbolic";
-            powerIndicator.add_child(_getIndicators(this));
+            if (enableIndicator) {
+                this._indicator = this._addIndicator();
+                this._indicator.icon_name = "emoji-nature-symbolic";
+                powerIndicator.add_child(_getIndicators(this));
+            }
 
             if (sys_conservation !== null) {
                 this._item = new PopupMenu.PopupSwitchMenuItem(_("Conservation Mode"), true);
@@ -72,14 +77,18 @@ const BatteryConservationIndicator = GObject.registerClass(
                     function () {}
                 );
 
-                this._indicator.visible = false;
+                if (this._indicator !== null) {
+                    this._indicator.visible = false;
+                }
             }
         }
 
         _syncStatus() {
             const status = Shell.get_file_contents_utf8_sync(sys_conservation);
             const active = (status.trim() == "1");
-            this._indicator.visible = active;
+            if (this._indicator !== null) {
+                this._indicator.visible = active;
+            }
             this._item.setToggleState(active);
         }
 
@@ -90,7 +99,9 @@ const BatteryConservationIndicator = GObject.registerClass(
         }
 
         destroy() {
-            this._indicator.destroy();
+            if (this._indicator !== null) {
+                this._indicator.destroy();
+            }
             this._item.destroy();
             if (this._monitor !== null) this._monitor.cancel();
         }
