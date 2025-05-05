@@ -63,6 +63,9 @@ class ConservationIndicator extends QuickSettings.SystemIndicator {
             this._toggle = new ConservationToggle();
             this._toggle.connect('clicked', item => {
                 this._setConservationMode(item.get_checked());
+                // Should be always called because a user can
+                // click 'Cancel' button of the pkexec dialog
+                this._syncStatus();
             });
 
             // Monitor the changes and show or hide the indicator accordingly.
@@ -98,7 +101,8 @@ class ConservationIndicator extends QuickSettings.SystemIndicator {
 
     _setConservationMode(enabled) {
         const new_status = (enabled) ? '1' : '0';
-        Util.spawnCommandLine(`/bin/sh -c 'echo ${new_status} | sudo tee ${sys_conservation} >/dev/null'`);
+        //Util.spawnCommandLine(`/bin/sh -c 'echo ${new_status} | sudo tee ${sys_conservation} >/dev/null'`);
+        Util.spawnCommandLine(`/bin/sh -c 'echo ${new_status} | /usr/bin/pkexec /usr/bin/tee ${sys_conservation} >/dev/null'`);
     }
 });
 
