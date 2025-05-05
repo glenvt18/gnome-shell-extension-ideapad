@@ -30,6 +30,8 @@ import * as QuickSettings from 'resource:///org/gnome/shell/ui/quickSettings.js'
 
 const QuickSettingsMenu = Main.panel.statusArea.quickSettings;
 
+const enableIndicator = false;
+
 // MANUAL OVERRIDE
 // to disable the auto-discovery more, just set the absolute device path here
 // E.g.: "/sys/bus/platform/drivers/ideapad_acpi/VPC2004:00/conservation_mode"
@@ -53,8 +55,12 @@ class ConservationIndicator extends QuickSettings.SystemIndicator {
         super._init();
 
         // Create the icon for the indicator
-        this._indicator = this._addIndicator();
-        this._indicator.icon_name = 'emoji-nature-symbolic';
+        this._indicator = null;
+        if (enableIndicator) {
+            this._indicator = this._addIndicator();
+            this._indicator.icon_name = 'emoji-nature-symbolic';
+        }
+
         this._toggle = null;
         this._monitor = null;
 
@@ -78,7 +84,9 @@ class ConservationIndicator extends QuickSettings.SystemIndicator {
         } else {
             // Use the toggle to signal the error.
             this._toggle = new ConservationToggle(false);
-            this._indicator.visible = false;
+            if (this._indicator !== null) {
+                this._indicator.visible = false;
+            }
         }
 
         // Make sure to destroy the toggle along with the indicator.
@@ -95,7 +103,9 @@ class ConservationIndicator extends QuickSettings.SystemIndicator {
     _syncStatus() {
         const status = Shell.get_file_contents_utf8_sync(sys_conservation);
         const active = (status.trim() == '1');
-        this._indicator.visible = active;
+        if (this._indicator !== null) {
+            this._indicator.visible = active;
+        }
         this._toggle.set_checked(active);
     }
 
@@ -132,7 +142,9 @@ export default class IdeaPadExtension extends Extension {
     }
 
     disable() {
-        this._indicator.destroy();
+        if (this._indicator !== null) {
+            this._indicator.destroy();
+        }
         this._indicator = null;
     }
 
